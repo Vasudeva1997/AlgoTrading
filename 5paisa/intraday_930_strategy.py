@@ -1,6 +1,10 @@
 from py5paisa import FivePaisaClient
 import time
+import math
 import pandas as pd
+import warnings
+from datetime import datetime
+warnings.filterwarnings("ignore", category=FutureWarning)
 cred = {
     "APP_NAME": "5P56409084",
     "APP_SOURCE": "9217",
@@ -12,18 +16,27 @@ cred = {
 client = FivePaisaClient(email="vasuappliedai@gmail.com",
                          passwd="Vasudeva@2", dob="19981218", cred=cred)
 client.login()
+script_df = pd.read_csv("scripmaster-csv-format.csv")
+
 
 '''
 9:30 AM strategy starts here
 '''
+nifty_script_code = 999920000
+banknifty_script_code = 999920005
+given_date = datetime.today().strftime('%Y-%m-%d')
+strikePrice = client.historical_data("N", "C", banknifty_script_code,
+                                     "1m", given_date, given_date)["Open"].loc[15]
+strikePrice = round(strikePrice/1000, 1)*1000
+print("Banknifty at 10:30am ", strikePrice)
 expiry = "20220317"
-strikePrice = "35500"
-symbol = "BANKNIFTY 17 MAR 2022"
-call_symbol = symbol + " CE "+strikePrice + ".00"
-put_symbol = symbol + " PE "+strikePrice + ".00"
-call_script_code = 48140
-put_script_code = 48141
-given_date = "2022-03-15"
+symbol = "BANKNIFTY 17 Mar 2022"
+call_symbol = symbol + " CE "+strikePrice.__str__() + "0"
+put_symbol = symbol + " PE "+strikePrice.__str__() + "0"
+call_script_code = script_df[script_df["FullName"]
+                             == call_symbol].iloc[0]["Scripcode"]
+put_script_code = script_df[script_df["FullName"]
+                            == put_symbol].iloc[0]["Scripcode"]
 
 req_list_ = [{"Exch": "N", "ExchType": "D", "Symbol": call_symbol, "Expiry": expiry, "StrikePrice": strikePrice, "OptionType": "CE"},
              {"Exch": "N", "ExchType": "D", "Symbol": put_symbol, "Expiry": expiry, "StrikePrice": strikePrice, "OptionType": "PE"}]
@@ -47,7 +60,7 @@ def entry_stoploss(script_code: int, date):
         'N', 'D', script_code, '5m', date, date)
     entry_price = df.loc[3]["Open"]
     stop_loss = entry_price*1.2
-    return(entry_price, stop_loss)
+    return(math.ceil(entry_price), math.ceil(stop_loss))
 
 
 def get_stoploss_time(script_code, date, stop_loss):
@@ -75,8 +88,8 @@ def new_entry_stoploss(script_code, date, stop_loss_time):
         'N', 'D', script_code, '1m', date, date).loc[15:]
     new_entry_index = df.index[df["Datetime"] == stop_loss_time][0]
     new_entry_point = df.loc[new_entry_index]["Close"]
-    new_stop_loss = new_entry_point*1.2
-    print("New stop loss at ", new_entry_point, new_stop_loss)
+    new_stop_loss = math.ceil(new_entry_point*1.2)
+    print("Current Price Vs New stop loss at ", new_entry_point, new_stop_loss)
     screen_dataframe = get_dataframe_date(df, given_date)
     # If Test after market uncomment below
     # screen_dataframe = screen_dataframe[new_entry_index:-30]
@@ -88,17 +101,19 @@ def get_exit_points(screen_dataframe, new_stop_loss):
     buy_point = -1
     for index in range(len(screen_dataframe)):
         temp_df = screen_dataframe.iloc[index]
-        temp_close_point = temp_df["High"]
-        if(temp_close_point > new_stop_loss):
-            buy_point = temp_close_point
-            print("Exited att ", temp_close_point)
+        temp_high_point = temp_df["High"]
+        temp_low_point = temp_df["Low"]
+        if(temp_high_point > new_stop_loss):
+            buy_point = temp_high_point
+            print("Exited att ", new_stop_loss)
             print("Exited df\n", temp_df)
             break
-        elif(temp_close_point < new_stop_loss*0.75):
-            new_stop_loss = temp_close_point*1.2
+        elif(temp_low_point < new_stop_loss*0.75):
+            new_stop_loss = math.ceil(temp_low_point*1.2)
+            print("Updated stoploss & Current Price & Time ",
+                  new_stop_loss, temp_low_point, temp_df["Datetime"])
     if(buy_point == -1):
-        print("Exited at ", screen_dataframe.iloc[len(
-            screen_dataframe)-1]["Close"])
+        print("Exited at ", new_stop_loss)
         print("Exited df ", screen_dataframe.iloc[len(
             screen_dataframe)-1])
 
