@@ -1,5 +1,5 @@
 from py5paisa import FivePaisaClient
-from py5paisa.order import Order, OrderType, Exchange
+from py5paisa.order import Order, OrderType, Exchange, bo_co_order
 import time
 import math
 import pandas as pd
@@ -60,6 +60,18 @@ req_list_ = [
         "OptionType": "PE",
     },
 ]
+
+
+def place_co_bo(order_type, script_code, quantity, price, stop_loss):
+    test_order = bo_co_order(script_code, quantity, price+0.5, price,
+                             0, order_type, "N", "D", "p", stop_loss+0.5, stop_loss)
+    return client.bo_order(test_order)
+
+
+def modify_sl_co_bo(order_type, script_code, quantity,  stop_loss, exchange_id):
+    test_order = Order(order_type=order_type, scrip_code=script_code, quantity=quantity, price=0, is_intraday=True, exchange='N', exchange_segment='D',
+                       atmarket=True, exch_order_id=exchange_id, stoploss_price=stop_loss, is_stoploss_order=True, order_for='M')
+    return client.mod_bo_order(test_order)
 
 
 def place_order(order_type, script_code, quantity, price, stop_loss):
@@ -131,6 +143,7 @@ def new_entry_stoploss(script_code, date, stop_loss_time):
     new_stop_loss = math.ceil(new_entry_point * 1.2)
     print("Current Price Vs New stop loss at ", new_entry_point, new_stop_loss)
     # print(modify_order("B", trailing_script_code, 25, new_stop_loss, order_id))
+    print(modify_sl_co_bo("B", trailing_script_code, 25, new_stop_loss, order_id))
     screen_dataframe = get_dataframe_date(df, given_date)
     # If Test after market uncomment below
     # screen_dataframe = screen_dataframe[new_entry_index:-30]
@@ -168,10 +181,16 @@ call_entry, call_stoploss = entry_stoploss(call_script_code, given_date)
 put_entry, put_stoploss = entry_stoploss(put_script_code, given_date)
 
 # place_order("S", 53435, 25, 500, 600)
-call_order_id = place_order("S", call_script_code, 25, call_entry,
+# cover order
+call_order_id = place_co_bo("S", call_script_code, 25, call_entry,
                             call_stoploss)["ExchOrderID"]
-put_order_id = place_order("S", put_script_code, 25, put_entry,
+put_order_id = place_co_bo("S", put_script_code, 25, put_entry,
                            put_stoploss)["ExchOrderID"]
+# Normal Order
+# call_order_id = place_order("S", call_script_code, 25, call_entry,
+#                             call_stoploss)["ExchOrderID"]
+# put_order_id = place_order("S", put_script_code, 25, put_entry,
+#                            put_stoploss)["ExchOrderID"]
 print("Put Entry and Stoploss ", put_entry, put_stoploss)
 print("Call Entry and Stoploss ", call_entry, call_stoploss)
 print("Call Order ID and PUT Order ID ", call_order_id, put_order_id)
