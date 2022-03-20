@@ -63,18 +63,24 @@ req_list_ = [
 
 
 def place_co_bo(order_type, script_code, quantity, price, stop_loss):
+    if(order_type == "B" or order_type == "S"):
+        return {'ExchOrderID': '12333'}
     test_order = bo_co_order(script_code, quantity, price+0.5, price,
                              0, order_type, "N", "D", "p", stop_loss+0.5, stop_loss)
     return client.bo_order(test_order)
 
 
 def modify_sl_co_bo(order_type, script_code, quantity,  stop_loss, exchange_id):
+    if(order_type == "B" or order_type == "S"):
+        return {'ExchOrderID': '12333'}
     test_order = Order(order_type=order_type, scrip_code=script_code, quantity=quantity, price=0, is_intraday=True, exchange='N', exchange_segment='D',
                        atmarket=True, exch_order_id=exchange_id, stoploss_price=stop_loss, is_stoploss_order=True, order_for='M')
     return client.mod_bo_order(test_order)
 
 
 def place_order(order_type, script_code, quantity, price, stop_loss):
+    if(order_type == "B" or order_type == "S"):
+        return {'ExchOrderID': '12333'}
     test_order = Order(
         order_type=order_type,
         exchange="N",
@@ -90,6 +96,8 @@ def place_order(order_type, script_code, quantity, price, stop_loss):
 
 
 def modify_order(order_type, script_code, quantity, price, order_id):
+    if(order_type == "B" or order_type == "S"):
+        return {'ExchOrderID': '12333'}
     modify_order = Order(order_type="B", quantity=25, exchange="N", exchange_segment="D", price=new_stop_loss,
                          is_intraday=True, exch_order_id=order_id)
     return client.modify_order(modify_order)
