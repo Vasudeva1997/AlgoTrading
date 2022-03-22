@@ -1,5 +1,5 @@
 from py5paisa import FivePaisaClient
-from py5paisa.order import Order, OrderType, Exchange, bo_co_order
+from py5paisa.order import Order, OrderType, Exchange, Bo_co_order
 import time
 import math
 import pandas as pd
@@ -13,10 +13,10 @@ cred = {
     "USER_ID": "pybeQPEbjju",
     "PASSWORD": "AESDZQGqyAa",
     "USER_KEY": "542GTEZguBbLERUXRZe26rLvfWU2X2KD",
-    "ENCRYPTION_KEY": "R4adCPfgGq8HuTbru8WnpKzzTVHWhvWI",
+    "ENCRYPTION_KEY": "l8sRTIsjl1JhUrz8X48XQJzKGI4k0gft",
 }
 client = FivePaisaClient(
-    email="vasuappliedai@gmail.com", passwd="Vasudeva@2", dob="19981218", cred=cred
+    email="vasuappliedai@gmail.com", passwd="Vasudeva@1", dob="19981218", cred=cred
 )
 client.login()
 script_df = pd.read_csv("scripmaster-csv-format.csv")
@@ -37,10 +37,8 @@ expiry = "20220324"
 symbol = "BANKNIFTY 24 Mar 2022"
 call_symbol = symbol + " CE " + strikePrice.__str__() + "0"
 put_symbol = symbol + " PE " + strikePrice.__str__() + "0"
-call_script_code = script_df[script_df["FullName"]
-                             == call_symbol].iloc[0]["Scripcode"].__int__()
-put_script_code = script_df[script_df["FullName"]
-                            == put_symbol].iloc[0]["Scripcode"].__int__()
+call_script_code = script_df[script_df["FullName"] == call_symbol].iloc[0]["Scripcode"].__int__()
+put_script_code = script_df[script_df["FullName"] == put_symbol].iloc[0]["Scripcode"].__int__()
 
 req_list_ = [
     {
@@ -63,24 +61,47 @@ req_list_ = [
 
 
 def place_co_bo(order_type, script_code, quantity, price, stop_loss):
-    if(order_type == "B" or order_type == "S"):
-        return {'ExchOrderID': '12333'}
-    test_order = bo_co_order(script_code, quantity, price+0.5, price,
-                             0, order_type, "N", "D", "p", stop_loss+0.5, stop_loss)
+    if order_type == "B" or order_type == "S":
+        return {"ExchOrderID": "12333"}
+    test_order = Bo_co_order(
+        script_code,
+        quantity,
+        price + 0.5,
+        price,
+        0,
+        order_type,
+        "N",
+        "D",
+        "p",
+        stop_loss + 0.5,
+        stop_loss,
+    )
     return client.bo_order(test_order)
 
 
-def modify_sl_co_bo(order_type, script_code, quantity,  stop_loss, exchange_id):
-    if(order_type == "B" or order_type == "S"):
-        return {'ExchOrderID': '12333'}
-    test_order = Order(order_type=order_type, scrip_code=script_code, quantity=quantity, price=0, is_intraday=True, exchange='N', exchange_segment='D',
-                       atmarket=True, exch_order_id=exchange_id, stoploss_price=stop_loss, is_stoploss_order=True, order_for='M')
+def modify_sl_co_bo(order_type, script_code, quantity, stop_loss, exchange_id):
+    if order_type == "B" or order_type == "S":
+        return {"ExchOrderID": "12333"}
+    test_order = Order(
+        order_type=order_type,
+        scrip_code=script_code,
+        quantity=quantity,
+        price=0,
+        is_intraday=True,
+        exchange="N",
+        exchange_segment="D",
+        atmarket=True,
+        exch_order_id=exchange_id,
+        stoploss_price=stop_loss,
+        is_stoploss_order=True,
+        order_for="M",
+    )
     return client.mod_bo_order(test_order)
 
 
 def place_order(order_type, script_code, quantity, price, stop_loss):
-    if(order_type == "B" or order_type == "S"):
-        return {'ExchOrderID': '12333'}
+    if order_type == "B" or order_type == "S":
+        return {"ExchOrderID": "12333"}
     test_order = Order(
         order_type=order_type,
         exchange="N",
@@ -90,16 +111,23 @@ def place_order(order_type, script_code, quantity, price, stop_loss):
         price=price,
         is_intraday=True,
         stoploss_price=stop_loss,
-        is_stoploss_order=True
+        is_stoploss_order=True,
     )
     return client.place_order(test_order)
 
 
 def modify_order(order_type, script_code, quantity, price, order_id):
-    if(order_type == "B" or order_type == "S"):
-        return {'ExchOrderID': '12333'}
-    modify_order = Order(order_type="B", quantity=25, exchange="N", exchange_segment="D", price=new_stop_loss,
-                         is_intraday=True, exch_order_id=order_id)
+    if order_type == "B" or order_type == "S":
+        return {"ExchOrderID": "12333"}
+    modify_order = Order(
+        order_type="B",
+        quantity=25,
+        exchange="N",
+        exchange_segment="D",
+        price=new_stop_loss,
+        is_intraday=True,
+        exch_order_id=order_id,
+    )
     return client.modify_order(modify_order)
 
 
@@ -124,8 +152,7 @@ def entry_stoploss(script_code: int, date):
 
 
 def get_stoploss_time(script_code, date, stop_loss):
-    df = client.historical_data(
-        "N", "D", script_code, "1m", date, date).iloc[15:]
+    df = client.historical_data("N", "D", script_code, "1m", date, date).iloc[15:]
     # print(df[df["Datetime"] == "2022-03-15T09:49:00"])
     temp_df = df[df["High"] >= stop_loss]
     stop_loss_time = None
@@ -144,8 +171,7 @@ def get_dataframe_date(df, given_date):
 
 
 def new_entry_stoploss(script_code, date, stop_loss_time):
-    df = client.historical_data(
-        "N", "D", script_code, "1m", date, date).loc[15:]
+    df = client.historical_data("N", "D", script_code, "1m", date, date).loc[15:]
     new_entry_index = df.index[df["Datetime"] == stop_loss_time][0]
     new_entry_point = df.loc[new_entry_index]["Close"]
     new_stop_loss = math.ceil(new_entry_point * 1.2)
@@ -190,10 +216,8 @@ put_entry, put_stoploss = entry_stoploss(put_script_code, given_date)
 
 # place_order("S", 53435, 25, 500, 600)
 # cover order
-call_order_id = place_co_bo("S", call_script_code, 25, call_entry,
-                            call_stoploss)["ExchOrderID"]
-put_order_id = place_co_bo("S", put_script_code, 25, put_entry,
-                           put_stoploss)["ExchOrderID"]
+call_order_id = place_co_bo("S", call_script_code, 25, call_entry, call_stoploss)["ExchOrderID"]
+put_order_id = place_co_bo("S", put_script_code, 25, put_entry, put_stoploss)["ExchOrderID"]
 # Normal Order
 # call_order_id = place_order("S", call_script_code, 25, call_entry,
 #                             call_stoploss)["ExchOrderID"]
@@ -203,11 +227,9 @@ print("Put Entry and Stoploss ", put_entry, put_stoploss)
 print("Call Entry and Stoploss ", call_entry, call_stoploss)
 print("Call Order ID and PUT Order ID ", call_order_id, put_order_id)
 
-put_stop_loss_time = get_stoploss_time(
-    put_script_code, given_date, put_stoploss)
+put_stop_loss_time = get_stoploss_time(put_script_code, given_date, put_stoploss)
 print("Stoploss hit time at PUT ", put_stop_loss_time)
-call_stop_loss_time = get_stoploss_time(
-    call_script_code, given_date, call_stoploss)
+call_stop_loss_time = get_stoploss_time(call_script_code, given_date, call_stoploss)
 print("Stoploss hit time at CALL ", call_stop_loss_time)
 
 stop_loss_time = None
@@ -225,7 +247,9 @@ if call_stop_loss_time is not None:
 screen_dataframe, new_stop_loss = (None, None)
 if stop_loss_time is not None:
     screen_dataframe, new_stop_loss = new_entry_stoploss(
-        trailing_script_code, given_date, stop_loss_time,
+        trailing_script_code,
+        given_date,
+        stop_loss_time,
     )
     get_exit_points(screen_dataframe, new_stop_loss)
 
