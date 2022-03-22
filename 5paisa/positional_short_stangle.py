@@ -20,11 +20,6 @@ client = FivePaisaClient(
 )
 client.login()
 given_date = datetime.today().strftime("%Y-%m-%d")
-# a = [
-#     {"Exchange": "N", "ExchangeType": "C", "ScripCode": "2885"},
-# ]
-# temp_df = client.fetch_market_depth(a)
-# print(temp_df)
 
 
 script_df = pd.read_csv("scripmaster-csv-format.csv")
@@ -32,12 +27,14 @@ symbol = "BANKNIFTY 24 Mar 2022"
 
 
 def get_current_expiry_strikes(symbol, start_strike, end_strike):
-    temp_df = script_df["FullName"].str.contains(pat=symbol + " CE", regex=True)
+    temp_df = script_df["FullName"].str.contains(
+        pat=symbol + " CE", regex=True)
     call_df = script_df[temp_df]
     call_df = call_df[call_df["StrikeRate"] > start_strike]
     call_df = call_df[call_df["StrikeRate"] < end_strike]
     call_df.to_csv("bank_nifty_call_expiry" + symbol + ".csv")
-    temp_df = script_df["FullName"].str.contains(pat=symbol + " PE", regex=True)
+    temp_df = script_df["FullName"].str.contains(
+        pat=symbol + " PE", regex=True)
     put_df = script_df[temp_df]
     put_df = put_df[put_df["StrikeRate"] > start_strike]
     put_df = put_df[put_df["StrikeRate"] < end_strike]
@@ -60,4 +57,4 @@ def map_prices_to_strike_prices(data_frame):
     return data_frame
 
 
-call_df, put_df = get_current_expiry_strikes(symbol, 34000, 38000)
+# call_df, put_df = get_current_expiry_strikes(symbol, 34000, 38000)
