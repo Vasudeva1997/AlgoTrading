@@ -42,25 +42,6 @@ call_script_code = script_df[script_df["FullName"]
 put_script_code = script_df[script_df["FullName"]
                             == put_symbol].iloc[0]["Scripcode"].__int__()
 
-req_list_ = [
-    {
-        "Exch": "N",
-        "ExchType": "D",
-        "Symbol": call_symbol,
-        "Expiry": expiry,
-        "StrikePrice": strikePrice,
-        "OptionType": "CE",
-    },
-    {
-        "Exch": "N",
-        "ExchType": "D",
-        "Symbol": put_symbol,
-        "Expiry": expiry,
-        "StrikePrice": strikePrice,
-        "OptionType": "PE",
-    },
-]
-
 
 def place_co_bo(order_type, script_code, quantity, price, stop_loss):
     if order_type == "B" or order_type == "S":
@@ -146,6 +127,33 @@ def get_current_price():
         time.sleep(5)
 
 
+def get_last_traded_prices():
+    req_list = [
+        {
+            "Exch": "N",
+            "ExchType": "D",
+            "Symbol": call_symbol,
+            "Expiry": expiry,
+            "StrikePrice": strikePrice,
+            "OptionType": "CE",
+        },
+        {
+            "Exch": "N",
+            "ExchType": "D",
+            "Symbol": put_symbol,
+            "Expiry": expiry,
+            "StrikePrice": strikePrice,
+            "OptionType": "PE",
+        },
+    ]
+
+    market_data = client.fetch_market_feed([req_list[0]])["Data"]
+    call_ltp = market_data[0]["LastRate"]
+    market_data = client.fetch_market_feed([req_list[1]])["Data"]
+    put_ltp = market_data[0]["LastRate"]
+    return call_ltp, put_ltp
+
+
 def entry_stoploss(script_code: int, date):
     df = client.historical_data("N", "D", script_code, "5m", date, date)
     entry_price = df.loc[3]["Open"]
@@ -181,7 +189,7 @@ def new_entry_stoploss(script_code, date, stop_loss_time):
     new_stop_loss = math.ceil(new_entry_point * 1.2)
     print("Current Price Vs New stop loss at ", new_entry_point, new_stop_loss)
     # print(modify_order("B", trailing_script_code, 25, new_stop_loss, order_id))
-    print(modify_sl_co_bo("B", trailing_script_code, 25, new_stop_loss, order_id))
+    modify_sl_co_bo("B", trailing_script_code, 25, new_stop_loss, order_id)
     screen_dataframe = get_dataframe_date(df, given_date)
     # If Test after market uncomment below
     # screen_dataframe = screen_dataframe[new_entry_index:-30]
@@ -218,17 +226,15 @@ def get_exit_points(screen_dataframe, new_stop_loss):
 def wait_for_order_execution(brokerId):
     while_flag = True
     while while_flag:
-        order_book = client.order_book()
-        for index in range(len(order_book)):
-            order = order_book[index]
-            if(order["BrokerOrderId"] == brokerId):
-                final_order = order
-                if(final_order["OrderStatus"] == "Fully Executed"):
-                    while_flag = False
-                else:
-                    sleep(60)
-                break
-    return final_order
+        call_ltp, put_ltp = get_last_traded_prices()
+        if call_ltp == call_stoploss:
+            print("call stop loss hit")
+            while_flag = False
+        elif put_ltp == put_stoploss:
+            print("put stop loss hit")
+            while_flag = False
+        else:
+            time.sleep(60)
 
 
 call_entry, call_stoploss = entry_stoploss(call_script_code, given_date)
