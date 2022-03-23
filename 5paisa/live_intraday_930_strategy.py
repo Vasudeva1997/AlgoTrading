@@ -21,6 +21,19 @@ client = FivePaisaClient(
 )
 client.login()
 
+# cred = {
+#     "APP_NAME": "5P57752064",
+#     "APP_SOURCE": "9322",
+#     "USER_ID": "5eRLuL81EDc",
+#     "PASSWORD": "mUG0xZduuO5",
+#     "USER_KEY": "BkVgrzXhLIUJbSYqqGIxNpyXcTtpSh0s",
+#     "ENCRYPTION_KEY": "pecRHVbBoroAavcjObdA6ITkK0ZmhSjq",
+# }
+# client = FivePaisaClient(
+#     email="chanderg16@gmail.com", passwd="5321@rvsA", dob="19720316", cred=cred
+# )
+# client.login()
+
 script_df = pd.read_csv("scripmaster-csv-format.csv")
 
 nifty_script_code = 999920000
@@ -39,7 +52,7 @@ call_script_code = script_df[script_df["FullName"]
                              == call_symbol].iloc[0]["Scripcode"].__int__()
 put_script_code = script_df[script_df["FullName"]
                             == put_symbol].iloc[0]["Scripcode"].__int__()
-
+call_script_code, put_script_code
 
 req_list = [
     {
@@ -122,7 +135,7 @@ def get_last_traded_prices():
 
 def get_requested_ltp():
     market_data = client.fetch_market_feed(req_list)["Data"]
-    return market_data[0]["LastRate"]
+    return math.floor(market_data[0]["LastRate"])
 
 
 def if_order_executed(exchange_id):
@@ -142,6 +155,17 @@ def wait_for_order_execution():
             return put_script_code
         else:
             time.sleep(60)
+
+
+def wait_for_exit(script_code, order_id):
+    while(if_order_executed(order_id) == False):
+        df = client.historical_data(
+            'N', 'D', script_code, '1m', given_date, given_date).tail(1)
+        low_price = df["Low"].iloc[0]
+        if low_price < new_stop_loss:
+            new_stop_loss = low_price*1.2
+            modify_sl_co_bo(script_code, 25, new_stop_loss, order_id)
+        time.sleep(60)
 
 
 call_entry, put_entry = get_last_traded_prices()
@@ -193,3 +217,8 @@ if sl_hit_script == put_script_code:
         "StrikePrice": strikePrice,
         "OptionType": "CE",
     }]
+
+new_stop_loss = math.ceil(get_requested_ltp()*1.2)
+print("LTP & New Stoploss ", new_stop_loss*0.75, new_stop_loss)
+
+wait_for_exit(script_code, order_id)
