@@ -32,7 +32,7 @@ strikePrice = client.historical_data("N", "C", banknifty_script_code, "1m", give
     "Open"
 ].loc[15]
 strikePrice = round(strikePrice / 1000, 1) * 1000
-print("Banknifty at 10:30am ", strikePrice)
+print("Banknifty at 9:30am ", strikePrice)
 expiry = "20220324"
 symbol = "BANKNIFTY 24 Mar 2022"
 call_symbol = symbol + " CE " + strikePrice.__str__() + "0"
@@ -190,10 +190,10 @@ def new_entry_stoploss(script_code, date, stop_loss_time):
     print("Current Price Vs New stop loss at ", new_entry_point, new_stop_loss)
     # print(modify_order("B", trailing_script_code, 25, new_stop_loss, order_id))
     modify_sl_co_bo("B", trailing_script_code, 25, new_stop_loss, order_id)
-    screen_dataframe = get_dataframe_date(df, given_date)
+    # screen_dataframe = get_dataframe_date(df, given_date)
     # If Test after market uncomment below
     # screen_dataframe = screen_dataframe[new_entry_index:-30]
-    screen_dataframe = screen_dataframe[new_entry_index:]
+    screen_dataframe = df[new_entry_index:]
     return screen_dataframe, new_stop_loss
 
 
