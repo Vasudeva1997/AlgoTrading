@@ -33,8 +33,8 @@ strikePrice = client.historical_data("N", "C", banknifty_script_code, "1m", give
 ].loc[13]
 strikePrice = round(strikePrice / 1000, 1) * 1000
 print("Banknifty at 9:30am ", strikePrice)
-expiry = "20220324"
-symbol = "BANKNIFTY 24 Mar 2022"
+expiry = "20220331"
+symbol = "BANKNIFTY 31 Mar 2022"
 call_symbol = symbol + " CE " + strikePrice.__str__() + "0"
 put_symbol = symbol + " PE " + strikePrice.__str__() + "0"
 call_script_code = script_df[script_df["FullName"]
