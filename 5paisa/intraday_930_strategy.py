@@ -31,6 +31,7 @@ given_date = datetime.today().strftime("%Y-%m-%d")
 strikePrice = client.historical_data("N", "C", banknifty_script_code, "1m", given_date, given_date)[
     "Open"
 ].loc[13]
+strikePrice=35800
 strikePrice = round(strikePrice / 1000, 1) * 1000
 print("Banknifty at 9:30am ", strikePrice)
 expiry = "20220331"
