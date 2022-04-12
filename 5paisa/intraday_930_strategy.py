@@ -33,8 +33,8 @@ strikePrice = client.historical_data("N", "C", banknifty_script_code, "1m", give
 ].loc[13]
 strikePrice = round(strikePrice / 1000, 1) * 1000
 print("Banknifty at 9:30am ", strikePrice)
-expiry = "20220413"
-symbol = "BANKNIFTY 13 Apr 2022"
+expiry = "20220421"
+symbol = "BANKNIFTY 21 Apr 2022"
 call_symbol = symbol + " CE " + strikePrice.__str__() + "0"
 put_symbol = symbol + " PE " + strikePrice.__str__() + "0"
 call_script_code = script_df[script_df["FullName"] == call_symbol].iloc[0]["Scripcode"].__int__()
@@ -185,11 +185,10 @@ def new_entry_stoploss(script_code, date, stop_loss_time):
     new_stop_loss = math.ceil(new_entry_point * 1.2)
     print("Current Price Vs New stop loss at ", new_entry_point, new_stop_loss)
     # print(modify_order("B", trailing_script_code, 25, new_stop_loss, order_id))
-    modify_sl_co_bo("B", trailing_script_code, 25, new_stop_loss, order_id)
     # screen_dataframe = get_dataframe_date(df, given_date)
     # If Test after market uncomment below
     # screen_dataframe = screen_dataframe[new_entry_index:-30]
-    screen_dataframe = df[new_entry_index:]
+    screen_dataframe = df.loc[new_entry_index:]
     return screen_dataframe, new_stop_loss
 
 
@@ -253,7 +252,7 @@ put_stop_loss_time = get_stoploss_time(put_script_code, given_date, put_stoploss
 print("Stoploss hit time at PUT ", put_stop_loss_time)
 call_stop_loss_time = get_stoploss_time(call_script_code, given_date, call_stoploss)
 print("Stoploss hit time at CALL ", call_stop_loss_time)
-
+call_stop_loss_time = None
 stop_loss_time = None
 trailing_script_code = None
 order_id = None
