@@ -37,8 +37,10 @@ expiry = "20220421"
 symbol = "BANKNIFTY 21 Apr 2022"
 call_symbol = symbol + " CE " + strikePrice.__str__() + "0"
 put_symbol = symbol + " PE " + strikePrice.__str__() + "0"
-call_script_code = script_df[script_df["FullName"] == call_symbol].iloc[0]["Scripcode"].__int__()
-put_script_code = script_df[script_df["FullName"] == put_symbol].iloc[0]["Scripcode"].__int__()
+call_script_code = script_df[script_df["FullName"]
+                             == call_symbol].iloc[0]["Scripcode"].__int__()
+put_script_code = script_df[script_df["FullName"]
+                            == put_symbol].iloc[0]["Scripcode"].__int__()
 
 
 def place_co_bo(order_type, script_code, quantity, price, stop_loss):
@@ -160,7 +162,8 @@ def entry_stoploss(script_code: int, date):
 
 
 def get_stoploss_time(script_code, date, stop_loss):
-    df = client.historical_data("N", "D", script_code, "1m", date, date).iloc[15:]
+    df = client.historical_data(
+        "N", "D", script_code, "1m", date, date).iloc[15:]
     # print(df[df["Datetime"] == "2022-03-15T09:49:00"])
     temp_df = df[df["High"] >= stop_loss]
     stop_loss_time = None
@@ -179,7 +182,8 @@ def get_dataframe_date(df, given_date):
 
 
 def new_entry_stoploss(script_code, date, stop_loss_time):
-    df = client.historical_data("N", "D", script_code, "1m", date, date).loc[15:]
+    df = client.historical_data(
+        "N", "D", script_code, "1m", date, date).loc[15:]
     new_entry_index = df.index[df["Datetime"] == stop_loss_time][0]
     new_entry_point = df.loc[new_entry_index]["Close"]
     new_stop_loss = math.ceil(new_entry_point * 1.2)
@@ -237,8 +241,10 @@ put_entry, put_stoploss = entry_stoploss(put_script_code, given_date)
 
 # place_order("S", 53435, 25, 500, 600)
 # cover order
-call_order_id = place_co_bo("S", call_script_code, 25, call_entry, call_stoploss)["ExchOrderID"]
-put_order_id = place_co_bo("S", put_script_code, 25, put_entry, put_stoploss)["ExchOrderID"]
+call_order_id = place_co_bo("S", call_script_code,
+                            25, call_entry, call_stoploss)["ExchOrderID"]
+put_order_id = place_co_bo("S", put_script_code, 25,
+                           put_entry, put_stoploss)["ExchOrderID"]
 # Normal Order
 # call_order_id = place_order("S", call_script_code, 25, call_entry,
 #                             call_stoploss)["ExchOrderID"]
@@ -248,9 +254,11 @@ print("Put Entry and Stoploss ", put_entry, put_stoploss)
 print("Call Entry and Stoploss ", call_entry, call_stoploss)
 print("Call Order ID and PUT Order ID ", call_order_id, put_order_id)
 
-put_stop_loss_time = get_stoploss_time(put_script_code, given_date, put_stoploss)
+put_stop_loss_time = get_stoploss_time(
+    put_script_code, given_date, put_stoploss)
 print("Stoploss hit time at PUT ", put_stop_loss_time)
-call_stop_loss_time = get_stoploss_time(call_script_code, given_date, call_stoploss)
+call_stop_loss_time = get_stoploss_time(
+    call_script_code, given_date, call_stoploss)
 print("Stoploss hit time at CALL ", call_stop_loss_time)
 call_stop_loss_time = None
 stop_loss_time = None
