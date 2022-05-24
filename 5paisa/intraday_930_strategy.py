@@ -33,8 +33,8 @@ strikePrice = client.historical_data("N", "C", banknifty_script_code, "1m", give
 ].loc[13]
 strikePrice = round(strikePrice / 1000, 1) * 1000
 print("Banknifty at 9:30am ", strikePrice)
-expiry = "20220505"
-symbol = "BANKNIFTY 05 May 2022"
+expiry = "20220519"
+symbol = "BANKNIFTY 19 May 2022"
 call_symbol = symbol + " CE " + strikePrice.__str__() + "0"
 put_symbol = symbol + " PE " + strikePrice.__str__() + "0"
 call_script_code = script_df[script_df["FullName"]
@@ -260,7 +260,7 @@ print("Stoploss hit time at PUT ", put_stop_loss_time)
 call_stop_loss_time = get_stoploss_time(
     call_script_code, given_date, call_stoploss)
 print("Stoploss hit time at CALL ", call_stop_loss_time)
-call_stop_loss_time = None
+# call_stop_loss_time = None
 stop_loss_time = None
 trailing_script_code = None
 order_id = None

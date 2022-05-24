@@ -20,6 +20,8 @@ client = FivePaisaClient(
 )
 client.login()
 given_date = datetime.today().strftime("%Y-%m-%d")
+indices = script_df.index[script_df["FullName"].str.contains(
+    pat=bank_nifty_symbol + " CE", regex=True) == True].tolist()
 
 
 script_df = pd.read_csv("scripmaster-csv-format.csv")
